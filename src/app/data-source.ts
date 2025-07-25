@@ -9,10 +9,7 @@ export class Database {
         if (!dbUrl) {
             throw new Error('DATABASE_URL not set in environment variables');
         }
-        await mongoose.connect(dbUrl, {
-            useNewUrlParser: true,
-            useUnifiedTopology: true,
-        } as any); // Type assertion for options compatibility
+        await mongoose.connect(dbUrl); // Type assertion for options compatibility
         // You can add more connection event listeners/logging here if needed
     }
 

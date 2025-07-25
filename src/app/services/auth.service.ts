@@ -1,6 +1,6 @@
 import { autoInjectable } from 'tsyringe';
 import { compare } from 'bcrypt';
-import { UserRepository } from '@/app/repositories/user.repository';
+import { UserModel } from '@/app/models/user.model';
 import { TokenService } from '@/app/services/token.service';
 import { ReqUserCompany, RequestUser } from '@/app/interfaces/auth.interface';
 import { UserStatus } from '@/app/enums/user.enum';
@@ -13,16 +13,13 @@ import { SigninRequestDTO } from '@/app/dtos/auth.dto';
 @autoInjectable()
 export class AuthService {
     private tokenService: TokenService;
-    private userRepository: UserRepository;
 
     /**
      * Constructor for AuthService.
      *
-     * @param {UserRepository} userRepository - The user repository
      * @param {TokenService} tokenService - The token service
      */
-    constructor(userRepository: UserRepository, tokenService: TokenService) {
-        this.userRepository = userRepository;
+    constructor(tokenService: TokenService) {
         this.tokenService = tokenService;
     }
 
@@ -35,10 +32,7 @@ export class AuthService {
      */
     async signin({ email, password }: SigninRequestDTO): Promise<RequestUser> {
         try {
-            const user = await this.userRepository.findOne({
-                where: { email },
-                relations: ['companyMembership', 'companyMembership.company'],
-            });
+            const user = await UserModel.findOne({ email }).exec();
             if (!user) {
                 throw new CustomError(401, 'Invalid credentials');
             }
@@ -57,9 +51,8 @@ export class AuthService {
 
             let userCompany: ReqUserCompany | undefined = undefined;
 
-          
             const reqUser: RequestUser = {
-                id: user.id,
+                id: user.id.toString(),
                 email: user.email,
                 firstName: user.firstName || '',
                 lastName: user.lastName || undefined,
@@ -88,15 +81,12 @@ export class AuthService {
         try {
             const decoded = this.tokenService.decodeRefreshToken(refreshToken);
             const decodedUser = decoded.user;
-            const user = await this.userRepository.findOne({
-                where: { id: decodedUser.id },
-                relations: ['companyMembership', 'companyMembership.company'],
-            });
+            const user = await UserModel.findById(decodedUser.id).exec();
             if (!user) {
                 throw new CustomError(401, 'Unauthorized: User not found');
             }
             let userCompany: ReqUserCompany | undefined = undefined;
-   
+
             if (user.status === UserStatus.INACTIVE) {
                 throw new CustomError(403, 'Your account is deactivated');
             }
@@ -104,7 +94,7 @@ export class AuthService {
                 throw new CustomError(403, 'Your account is suspended');
             }
             const reqUser: RequestUser = {
-                id: user.id,
+                id: user.id.toString(),
                 email: user.email,
                 firstName: user.firstName || '',
                 lastName: user.lastName || undefined,
