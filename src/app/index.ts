@@ -5,7 +5,7 @@ import path from 'path';
 import ejs from 'ejs';
 import http from 'http';
 import router from '@/app/routes';
-import { Database } from '@/app/data-source';
+import { connectMongo } from '@/app/data-source';
 import { CustomError } from '@/utils/custom-error';
 
 const app: Express = express();
@@ -39,7 +39,7 @@ app.set('views', viewsPath);
 
 export async function startServer(): Promise<Express> {
     try {
-        await Database.connect();
+        await connectMongo();
     } catch (error: any) {
         console.error('Error initializing Data Source ❌:', error);
         process.exit(1); // Stop the app if DB fails
