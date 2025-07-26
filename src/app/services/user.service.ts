@@ -3,7 +3,7 @@ import { RequestUser } from '@/app/interfaces/auth.interface';
 import { UserProfileSettingsRequestDTO } from '@/app/dtos/user.dto';
 import { UserSettings } from '@/app/interfaces/user.interface';
 import { autoInjectable } from 'tsyringe';
-import { UserModel, User } from '@/app/models/user.model';
+import { UserModel } from '@/app/models/user.model';
 
 @autoInjectable()
 export class UserService {
@@ -21,7 +21,7 @@ export class UserService {
             }
 
             return {
-                id: user.id.toString(),
+                id: user.id,
                 email: user.email,
                 firstName: user.firstName || '',
                 lastName: user.lastName || undefined,
@@ -49,7 +49,7 @@ export class UserService {
                 return null;
             }
             return {
-                id: user.id.toString(),
+                id: user.id,
                 email: user.email,
                 firstName: user.firstName || '',
                 lastName: user.lastName || undefined,

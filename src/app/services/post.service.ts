@@ -5,7 +5,8 @@ import { PostListQueryParams, PostList, PostWithDetails } from '@/app/interfaces
 import { CursorPaginationMeta } from '@/app/interfaces/common';
 import { PostModel } from '@/app/models/post.model';
 import { decodeCursor, encodeCursor } from '@/utils/helpers/cursor';
-import mongoose from 'mongoose';
+import { Types } from 'mongoose';
+import { PostSortOrder } from '../enums/post.enum';
 
 export class PostService {
     async createPost({
@@ -22,6 +23,8 @@ export class PostService {
                 tags: Array.isArray(data.tags) ? data.tags : [],
             });
 
+            await post.save();
+
             return this.getPostById(post.id.toString());
         } catch (error: any) {
             throw new CustomError(500, `[PostService] ${error.message}`);
@@ -31,7 +34,7 @@ export class PostService {
     async getPostById(id: string): Promise<PostWithDetails> {
         try {
             const pipeline = [
-                { $match: { _id: new mongoose.Types.ObjectId(id) } },
+                { $match: { _id: new Types.ObjectId(id) } },
                 {
                     $lookup: {
                         from: 'categories',
@@ -96,16 +99,35 @@ export class PostService {
             // Build the filter object
             const filter: any = {};
             if (queryParams?.categoryId) {
-                filter.categoryId = new mongoose.Types.ObjectId(queryParams.categoryId);
+                filter.categoryId = new Types.ObjectId(queryParams.categoryId);
             }
-            if (queryParams?.userId) {
-                filter.userId = new mongoose.Types.ObjectId(queryParams.userId);
+            if (queryParams?.myPosts) {
+                filter.userId = new Types.ObjectId(user.id);
+            } else if (queryParams?.userId) {
+                filter.userId = new Types.ObjectId(queryParams.userId);
             }
             if (queryParams?.q) {
                 filter.$or = [
                     { title: { $regex: queryParams.q, $options: 'i' } },
                     { content: { $regex: queryParams.q, $options: 'i' } },
                 ];
+            }
+            if (
+                queryParams?.tags &&
+                Array.isArray(queryParams.tags) &&
+                queryParams.tags.length > 0
+            ) {
+                // Match any of the tags
+                filter.tags = { $in: queryParams.tags };
+            }
+
+            // Determine sort field and order
+            let sort: Record<string, 1 | -1> = { createdAt: -1, _id: -1 };
+            if (queryParams?.sortBy || queryParams?.sortOrder) {
+                // Default to createdAt if not specified
+                const sortField = queryParams.sortBy || 'createdAt';
+                const sortDirection = queryParams.sortOrder === PostSortOrder.ASC ? 1 : -1;
+                sort = { [sortField]: sortDirection, _id: sortDirection };
             }
 
             // Add cursor-based filtering
@@ -119,7 +141,7 @@ export class PostService {
                         { createdAt: { $lt: cursorData.createdAt } },
                         {
                             createdAt: cursorData.createdAt,
-                            _id: { $lt: new mongoose.Types.ObjectId(cursorData.id) },
+                            _id: { $lt: new Types.ObjectId(cursorData.id) },
                         },
                     ];
 
@@ -137,7 +159,7 @@ export class PostService {
                                     { createdAt: { $lt: cursorData.createdAt } },
                                     {
                                         createdAt: cursorData.createdAt,
-                                        _id: { $lt: new mongoose.Types.ObjectId(cursorData.id) },
+                                        _id: { $lt: new Types.ObjectId(cursorData.id) },
                                     },
                                 ],
                             },

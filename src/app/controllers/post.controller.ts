@@ -13,7 +13,7 @@ import {
 import { createPostSchema, updatePostSchema } from '@/app/schemas/post.schema';
 import { formatError } from '@/utils/helpers/error-formatter';
 import { RequestUser } from '@/app/interfaces/auth.interface';
-import { PostListQueryParams, PostWithDetails } from '@/app/interfaces/post.interface';
+import { PostListQueryParams } from '@/app/interfaces/post.interface';
 
 @autoInjectable()
 export class PostController {

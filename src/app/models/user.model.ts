@@ -1,20 +1,8 @@
-import mongoose, { Schema, Document } from 'mongoose';
+import mongoose, { Schema } from 'mongoose';
 import { UserRole, UserStatus } from '@/app/enums/user.enum';
-import { UserSettings } from '@/app/interfaces/user.interface';
+import { User } from '@/app/interfaces/user.interface';
 
-export interface User extends Document {
-    firstName: string;
-    lastName?: string | null;
-    email: string;
-    password: string;
-    systemRole: UserRole;
-    settings?: UserSettings | null;
-    status: UserStatus;
-    createdAt: Date;
-    updatedAt: Date;
-}
-
-const UserSchema: Schema = new Schema<User>(
+const userSchema: Schema<User> = new Schema<User>(
     {
         firstName: { type: String, required: true },
         lastName: { type: String },
@@ -27,4 +15,4 @@ const UserSchema: Schema = new Schema<User>(
     { timestamps: true },
 );
 
-export const UserModel = mongoose.model<User>('User', UserSchema);
+export const UserModel = mongoose.model<User>('User', userSchema);

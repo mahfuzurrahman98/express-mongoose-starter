@@ -1,17 +1,7 @@
-import mongoose, { Schema, Document, Types } from 'mongoose';
-import { UserRole } from '@/app/enums/user.enum';
+import mongoose, { Schema } from 'mongoose';
+import { Post } from '@/app/interfaces/post.interface';
 
-export interface Post extends Document {
-    title: string;
-    content: string;
-    tags?: string[];
-    categoryId: Types.ObjectId;
-    userId: Types.ObjectId;
-    createdAt: Date;
-    updatedAt: Date;
-}
-
-const PostSchema: Schema = new Schema<Post>(
+const postSchema: Schema<Post> = new Schema<Post>(
     {
         title: { type: String, required: true },
         content: { type: String, required: true },
@@ -22,4 +12,4 @@ const PostSchema: Schema = new Schema<Post>(
     { timestamps: true },
 );
 
-export const PostModel = mongoose.model<Post>('Post', PostSchema);
+export const PostModel = mongoose.model<Post>('Post', postSchema);

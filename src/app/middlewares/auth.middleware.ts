@@ -4,7 +4,6 @@ import { RequestUser, TokenPayload } from '@/app/interfaces/auth.interface';
 import { UserService } from '@/app/services/user.service';
 import { CustomError } from '@/utils/custom-error';
 import { UserStatus } from '@/app/enums/user.enum';
-import { User } from '../models/user.model';
 
 /**
  * Middleware to attach user to request
@@ -74,27 +73,27 @@ export async function requireAuth(
     }
 
     if (!token) {
-        next(new CustomError(401, 'Unauthorized22 '));
+        next(new CustomError(401, 'Unauthorized: Token not found'));
     }
 
     try {
         const decodedTokenPayload: TokenPayload = tokenService.decodeAccessToken(token);
 
         if (!decodedTokenPayload.user) {
-            throw new CustomError(401, 'Unauthorized 33');
+            throw new CustomError(401, 'Unauthorized: Token is invalid');
         }
 
         const userService = new UserService();
         const user: RequestUser | null = await userService.getUserById(decodedTokenPayload.user.id);
 
         if (!user) {
-            throw new CustomError(401, 'Unauthorized 55');
+            throw new CustomError(401, 'Unauthorized: User not found');
         }
 
         request.user = user;
         next();
     } catch (error: any) {
-        next(new CustomError(401, 'Unauthorized 44:' + error.message));
+        next(new CustomError(401, 'Unauthorized:' + error.message));
     }
 }
 

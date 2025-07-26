@@ -1,7 +1,7 @@
 import { infer as zInfer } from 'zod';
 import { createCategorySchema, updateCategorySchema } from '@/app/schemas/category.schema';
 import { APIResponseDTO } from '@/app/dtos/common.dto';
-import { Category } from '@/app/models/category.model';
+import { Category } from '@/app/interfaces/category.interface';
 
 // Request DTOs
 export type CreateCategoryRequestDTO = zInfer<typeof createCategorySchema>;

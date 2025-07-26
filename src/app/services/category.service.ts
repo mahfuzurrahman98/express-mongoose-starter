@@ -1,7 +1,8 @@
 import { autoInjectable } from 'tsyringe';
 import { CreateCategoryRequestDTO, UpdateCategoryRequestDTO } from '@/app/dtos/category.dto';
 import { CustomError } from '@/utils/custom-error';
-import { CategoryModel, Category } from '@/app/models/category.model';
+import { CategoryModel } from '@/app/models/category.model';
+import { Category } from '@/app/interfaces/category.interface';
 
 @autoInjectable()
 export class CategoryService {
