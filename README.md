@@ -1,10 +1,10 @@
-# Express TypeScript TypeORM Starter
+# Express TypeScript Mongoose Starter
 
 A scalable, production-ready API starter template using:
 
 -   Express.js
 -   TypeScript
--   TypeORM (PostgreSQL)
+-   Mongoose (MongoDB)
 -   tsyringe (Dependency Injection)
 -   OOP principles
 

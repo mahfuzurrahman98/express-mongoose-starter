@@ -10,50 +10,40 @@ config({ path: envPath });
 console.log('Database URL is set:', process.env.DATABASE_URL);
 
 // Import other dependencies after environment variables are loaded
-import { AppDataSource } from '@/app/data-source';
-import { User } from '@/app/entities/user.entity';
+import { connectMongo } from '@/app/data-source';
+import { UserModel } from '@/app/models/user.model';
 import { faker } from '@faker-js/faker';
 import { hash } from 'bcrypt';
 import { UserRole, UserStatus } from '@/app/enums/user.enum';
 
 const seedUser = async () => {
-    const appDataSource = AppDataSource.getInstance();
+    const connection = await connectMongo();
     try {
-        // Initialize the database connection
-        await appDataSource.initialize();
-        await appDataSource.query('SET TIME ZONE UTC');
-        console.log('Database connection initialized successfully');
+        // Avoid duplicating users on repeated seeds
+        const existing = await UserModel.countDocuments({}).exec();
+        if (existing > 0) {
+            console.log('Users already exist, skipping seeding.');
+            return;
+        }
 
-        // Create a single query runner for all operations
-        const queryRunner = appDataSource.createQueryRunner();
-        await queryRunner.connect();
+        const user = new UserModel({
+            firstName: faker.person.firstName(),
+            lastName: faker.person.lastName(),
+            email: faker.internet.email(),
+            password: await hash('Asdf@123#', 10),
+            systemRole: UserRole.USER,
+            status: UserStatus.ACTIVE,
+            settings: { timezone: 'UTC' },
+        });
 
-        // Create user
-        const user = new User();
-        user.id = faker.string.uuid();
-        user.firstName = 'Towfique';
-        user.lastName = 'Chowdhury';
-        user.email = 'user@test.io';
-        user.password = await hash('Asdf@123#', 10);
-        user.systemRole = UserRole.USER;
-        user.status = UserStatus.ACTIVE;
-        user.createdAt = new Date();
-        user.updatedAt = new Date();
-        await queryRunner.manager.save(user);
-
-        // Release the query runner when all operations are done
-        await queryRunner.release();
-        console.log('✅ Admin user seeded successfully');
+        await user.save();
+        console.log('✅ User seeded successfully');
     } catch (error: any) {
-        // Handle any errors that occur during initialization
-        console.error('Failed to initialize database connection:', error);
+        console.error('❌ Error seeding user:', error);
         throw error;
     } finally {
-        // Close the database connection when everything is done
-        if (appDataSource.isInitialized) {
-            await appDataSource.destroy();
-            console.log('Database connection closed');
-        }
+        await connection.disconnect();
+        console.log('MongoDB connection closed');
     }
 };
 
